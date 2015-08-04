@@ -23,19 +23,25 @@ namespace MaterialUI
 		[HideInInspector]
 		public Stack<ScreenConfig> lastScreens;
 
+        void Start()
+        {
+            init();
+        }
+
         private void init()
         {
+            if (screens == null)
+                throw new NullReferenceException("Screen not set");
             if (lastScreens == null)
                 lastScreens = new Stack<ScreenConfig>();
             if (homeScreen == null)
                 throw new NullReferenceException("Home screen not set");
             if (currentScreen == null)
-                currentScreen = homeScreen;
+                SetCurrentScreen(homeScreen);
         }
 
         private ScreenConfig GetLastScreen()
         {
-            init();
             if (lastScreens.Count > 0)
             {
                 return lastScreens.Pop();
@@ -45,59 +51,107 @@ namespace MaterialUI
 
         private void SetLastScreen(ScreenConfig screen)
         {
-            init();
             lastScreens.Push(screen);
         }
 
-        private void ClearLastScreen()
+        private void ClearLastScreens()
         {
-            init();
             lastScreens.Clear();
         }
 
-		private void SetScreen(string name)
-		{
-            init();
-            int index = 0;
+        /// <summary>
+        /// Set active screen
+        /// </summary>
+        /// <param name="screen"></param>
+        private void SetScreen(ScreenConfig screen)
+        {
+            if (screen == null) return;
+            screen.transform.SetAsLastSibling();
+            screen.Show(currentScreen);
+            SetCurrentScreen(screen);
+        }
+
+        /// <summary>
+        /// Set current screen variable
+        /// </summary>
+        /// <param name="screen"></param>
+        private void SetCurrentScreen(ScreenConfig screen)
+        {
+            if (currentScreen != null && currentScreen.associatedMenu != null)
+                currentScreen.associatedMenu.UnsetActive();
+            currentScreen = screen;
+            if (currentScreen == homeScreen) ClearLastScreens();
+            if (currentScreen.associatedMenu != null)
+                currentScreen.associatedMenu.SetActive();
+        }
+
+        /// <summary>
+        /// Get screen from menu
+        /// </summary>
+        /// <param name="ScreenName"></param>
+        /// <returns></returns>
+        private ScreenConfig GetScreen(NavMenuConfig navMenu)
+        {
+            for (int i = 0; i < screens.Length; i++)
+            {
+                if (screens[i].associatedMenu == navMenu)
+                {
+                    return screens[i];
+                }
+            }
+            return null;
+        }
+
+        /// <summary>
+        /// Get screen from screen name
+        /// </summary>
+        /// <param name="name"></param>
+        /// <returns></returns>
+        private ScreenConfig GetScreen(string name)
+        {
             for (int i = 0; i < screens.Length; i++)
             {
                 if (screens[i].screenName == name)
                 {
-                    index = i;
-                    break;
+                    return screens[i];
                 }
             }
-            if (index == 0) return;
-			screens[index].transform.SetAsLastSibling();
-			screens[index].Show(currentScreen);
-			currentScreen = screens[index];
-            if (currentScreen == homeScreen)
-            {
-                ClearLastScreen();
-            }
-		}
-
-		public void Set(string name)
-		{
-            init();
-            ClearLastScreen();
-            SetScreen(name);
-		}
-
-        public void Navigate(string name)
-        {
-            init();
-            SetLastScreen(currentScreen);
-            SetScreen(name);
+            return null;
         }
 
+        /// <summary>
+        /// Used from navigation bar
+        /// History will not be preserved
+        /// </summary>
+        /// <param name="navMenu"></param>
+        public void NavMenuClick(NavMenuConfig navMenu)
+        {
+            ClearLastScreens();
+            SetScreen(GetScreen(navMenu));
+        }
+
+        /// <summary>
+        /// Used to navigate from within the screen
+        /// History of screens will be preserved
+        /// </summary>
+        /// <param name="name"></param>
+        public void Navigate(string name)
+        {
+            SetLastScreen(currentScreen);
+            var screen = GetScreen(name);
+            if (screen != null)
+                SetScreen(screen);
+        }
+
+        /// <summary>
+        /// Navigate Back
+        /// </summary>
 		public void Back()
 		{
-            init();
             var lastScreen = GetLastScreen();
 			lastScreen.ShowWithoutTransition();
 			currentScreen.Hide();
-			currentScreen = lastScreen;
+            SetCurrentScreen(lastScreen);
 		}
 	}
 }

@@ -117,6 +117,11 @@ namespace MaterialUI
 			Refresh();
 		}
 
+        public void SetNormalColor(Color color)
+        {
+            this.normalColor = color;
+        }
+
 		public void Refresh()
 		{
 			if (autoSize)
