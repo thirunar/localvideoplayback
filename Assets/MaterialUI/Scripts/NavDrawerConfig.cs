@@ -50,12 +50,17 @@ namespace MaterialUI
 			shadowCanvasGroup = ShadowImage.GetComponent<CanvasGroup>();
 		}
 
-		void Start()
+        void Start()
+        {
+            RecalcSize();
+        }
+
+		void RecalcSize()
 		{
 			maxPosition = thisRectTransform.rect.width / 2;
 			minPosition = -maxPosition;
 
-			backgroundRectTransform.sizeDelta = new Vector2(Screen.width, backgroundRectTransform.sizeDelta.y);
+			backgroundRectTransform.sizeDelta = new Vector2(CanvasConstants.canvasWidth, backgroundRectTransform.sizeDelta.y);
 		}
 
 		public void BackgroundTap()
@@ -66,6 +71,7 @@ namespace MaterialUI
 
 		public void Open()
 		{
+            RecalcSize();
 			currentPos = thisRectTransform.anchoredPosition;
 			currentBackgroundAlpha = backgroundCanvasGroup.alpha;
 			currentShadowAlpha = shadowCanvasGroup.alpha;
