@@ -9,6 +9,7 @@
 //	limitations under the License.
 
 using System;
+using System.Collections.Generic;
 using UnityEngine;
 
 namespace MaterialUI
@@ -16,39 +17,87 @@ namespace MaterialUI
 	public class ScreenManager : MonoBehaviour
 	{
 		public ScreenConfig[] screens;
+        public ScreenConfig homeScreen;
 		[HideInInspector]
 		public ScreenConfig currentScreen;
 		[HideInInspector]
-		public ScreenConfig lastScreen;
+		public Stack<ScreenConfig> lastScreens;
 
-		public void Set(int index)
+        private void init()
+        {
+            if (lastScreens == null)
+                lastScreens = new Stack<ScreenConfig>();
+            if (homeScreen == null)
+                throw new NullReferenceException("Home screen not set");
+            if (currentScreen == null)
+                currentScreen = homeScreen;
+        }
+
+        private ScreenConfig GetLastScreen()
+        {
+            init();
+            if (lastScreens.Count > 0)
+            {
+                return lastScreens.Pop();
+            }
+            return homeScreen;
+        }
+
+        private void SetLastScreen(ScreenConfig screen)
+        {
+            init();
+            lastScreens.Push(screen);
+        }
+
+        private void ClearLastScreen()
+        {
+            init();
+            lastScreens.Clear();
+        }
+
+		private void SetScreen(string name)
 		{
+            init();
+            int index = 0;
+            for (int i = 0; i < screens.Length; i++)
+            {
+                if (screens[i].screenName == name)
+                {
+                    index = i;
+                    break;
+                }
+            }
+            if (index == 0) return;
 			screens[index].transform.SetAsLastSibling();
-
 			screens[index].Show(currentScreen);
-			lastScreen = currentScreen;
 			currentScreen = screens[index];
+            if (currentScreen == homeScreen)
+            {
+                ClearLastScreen();
+            }
 		}
 
 		public void Set(string name)
 		{
-			for (int i = 0; i < screens.Length; i++)
-			{
-				if (screens[i].screenName == name)
-				{
-					Set(i);
-					return;
-				}
-			}
+            init();
+            ClearLastScreen();
+            SetScreen(name);
 		}
+
+        public void Navigate(string name)
+        {
+            init();
+            SetLastScreen(currentScreen);
+            SetScreen(name);
+        }
 
 		public void Back()
 		{
+            init();
+            var lastScreen = GetLastScreen();
 			lastScreen.ShowWithoutTransition();
 			currentScreen.Hide();
-			ScreenConfig temp = currentScreen;
 			currentScreen = lastScreen;
-			lastScreen = temp;
 		}
 	}
 }
