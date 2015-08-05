@@ -1,19 +1,20 @@
 ﻿using UnityEngine;
 using System;
 using UnityEngine.UI;
+using MaterialUI;
 
-namespace MaterialUI
+namespace CustomUI
 {
-    public class NavMenuConfig : MonoBehaviour
+    public class MenuItem : MonoBehaviour
     {
         private Image thisImage;
-        private RippleConfig thisRippleConfig;
+        private RippleCreator thisRippleCreator;
         private Color activeColor, normalColor;
 
         void Start()
         {
             thisImage = gameObject.GetComponent<Image>();
-            thisRippleConfig = gameObject.GetComponent<RippleConfig>();
+            thisRippleCreator = gameObject.GetComponent<RippleCreator>();
             Color.TryParseHexString("#0A0A0AFF", out activeColor);
             Color.TryParseHexString("#212121FF", out normalColor);
         }
@@ -21,13 +22,13 @@ namespace MaterialUI
         public void UnsetActive()
         {
             thisImage.color = normalColor;
-            thisRippleConfig.SetNormalColor(normalColor);
+            thisRippleCreator.SetNormalColor(normalColor);
         }
 
         public void SetActive()
         {
             thisImage.color = activeColor;
-            thisRippleConfig.SetNormalColor(activeColor);
+            thisRippleCreator.SetNormalColor(activeColor);
         }
     }
 }

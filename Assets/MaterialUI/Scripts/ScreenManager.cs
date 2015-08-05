@@ -9,7 +9,6 @@
 //	limitations under the License.
 
 using System;
-using System.Collections.Generic;
 using UnityEngine;
 
 namespace MaterialUI
@@ -17,141 +16,45 @@ namespace MaterialUI
 	public class ScreenManager : MonoBehaviour
 	{
 		public ScreenConfig[] screens;
-        public ScreenConfig homeScreen;
 		[HideInInspector]
 		public ScreenConfig currentScreen;
 		[HideInInspector]
-		public Stack<ScreenConfig> lastScreens;
+		public ScreenConfig lastScreen;
 
-        void Start()
-        {
-            init();
-        }
+		public void Set(int index)
+		{
+			// Prevent transitions on screens that are already in the process of transitioning in or out.
+			if (currentScreen && currentScreen.CurrentState != ScreenConfig.AnimationState.Stationary)
+			{
+				return;
+			}
 
-        private void init()
-        {
-            if (screens == null)
-                throw new NullReferenceException("Screen not set");
-            if (lastScreens == null)
-                lastScreens = new Stack<ScreenConfig>();
-            if (homeScreen == null)
-                throw new NullReferenceException("Home screen not set");
-            if (currentScreen == null)
-                SetCurrentScreen(homeScreen);
-        }
+			screens[index].transform.SetAsLastSibling();
 
-        private ScreenConfig GetLastScreen()
-        {
-            if (lastScreens.Count > 0)
-            {
-                return lastScreens.Pop();
-            }
-            return homeScreen;
-        }
+			screens[index].Show(currentScreen);
+			lastScreen = currentScreen;
+			currentScreen = screens[index];
+		}
 
-        private void SetLastScreen(ScreenConfig screen)
-        {
-            lastScreens.Push(screen);
-        }
+		public void Set(string name)
+		{
+			for (int i = 0; i < screens.Length; i++)
+			{
+				if (screens[i].screenName == name)
+				{
+					Set(i);
+					return;
+				}
+			}
+		}
 
-        private void ClearLastScreens()
-        {
-            lastScreens.Clear();
-        }
-
-        /// <summary>
-        /// Set active screen
-        /// </summary>
-        /// <param name="screen"></param>
-        private void SetScreen(ScreenConfig screen)
-        {
-            if (screen == null) return;
-            screen.transform.SetAsLastSibling();
-            screen.Show(currentScreen);
-            SetCurrentScreen(screen);
-        }
-
-        /// <summary>
-        /// Set current screen variable
-        /// </summary>
-        /// <param name="screen"></param>
-        private void SetCurrentScreen(ScreenConfig screen)
-        {
-            if (currentScreen != null && currentScreen.associatedMenu != null)
-                currentScreen.associatedMenu.UnsetActive();
-            currentScreen = screen;
-            if (currentScreen == homeScreen) ClearLastScreens();
-            if (currentScreen.associatedMenu != null)
-                currentScreen.associatedMenu.SetActive();
-        }
-
-        /// <summary>
-        /// Get screen from menu
-        /// </summary>
-        /// <param name="ScreenName"></param>
-        /// <returns></returns>
-        private ScreenConfig GetScreen(NavMenuConfig navMenu)
-        {
-            for (int i = 0; i < screens.Length; i++)
-            {
-                if (screens[i].associatedMenu == navMenu)
-                {
-                    return screens[i];
-                }
-            }
-            return null;
-        }
-
-        /// <summary>
-        /// Get screen from screen name
-        /// </summary>
-        /// <param name="name"></param>
-        /// <returns></returns>
-        private ScreenConfig GetScreen(string name)
-        {
-            for (int i = 0; i < screens.Length; i++)
-            {
-                if (screens[i].screenName == name)
-                {
-                    return screens[i];
-                }
-            }
-            return null;
-        }
-
-        /// <summary>
-        /// Used from navigation bar
-        /// History will not be preserved
-        /// </summary>
-        /// <param name="navMenu"></param>
-        public void NavMenuClick(NavMenuConfig navMenu)
-        {
-            ClearLastScreens();
-            SetScreen(GetScreen(navMenu));
-        }
-
-        /// <summary>
-        /// Used to navigate from within the screen
-        /// History of screens will be preserved
-        /// </summary>
-        /// <param name="name"></param>
-        public void Navigate(string name)
-        {
-            SetLastScreen(currentScreen);
-            var screen = GetScreen(name);
-            if (screen != null)
-                SetScreen(screen);
-        }
-
-        /// <summary>
-        /// Navigate Back
-        /// </summary>
 		public void Back()
 		{
-            var lastScreen = GetLastScreen();
 			lastScreen.ShowWithoutTransition();
 			currentScreen.Hide();
-            SetCurrentScreen(lastScreen);
+			ScreenConfig temp = currentScreen;
+			currentScreen = lastScreen;
+			lastScreen = temp;
 		}
 	}
 }

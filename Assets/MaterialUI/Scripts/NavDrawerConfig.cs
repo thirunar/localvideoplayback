@@ -18,12 +18,12 @@ namespace MaterialUI
 {
 	public class NavDrawerConfig : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHandler
 	{
-		private float maxPosition;
-		private float minPosition;
-		private RectTransform thisRectTransform;
+		protected float maxPosition;
+		protected float minPosition;
+		protected RectTransform thisRectTransform;
 
 		public Image backgroundImage;
-		private RectTransform backgroundRectTransform;
+		protected RectTransform backgroundRectTransform;
 		private CanvasGroup backgroundCanvasGroup;
 		public Image ShadowImage;
 		private CanvasGroup shadowCanvasGroup;
@@ -50,17 +50,12 @@ namespace MaterialUI
 			shadowCanvasGroup = ShadowImage.GetComponent<CanvasGroup>();
 		}
 
-        void Start()
-        {
-            RecalcSize();
-        }
-
-		void RecalcSize()
+		void Start()
 		{
 			maxPosition = thisRectTransform.rect.width / 2;
 			minPosition = -maxPosition;
 
-			backgroundRectTransform.sizeDelta = new Vector2(CanvasConstants.canvasWidth, backgroundRectTransform.sizeDelta.y);
+			backgroundRectTransform.sizeDelta = new Vector2(Screen.width, backgroundRectTransform.sizeDelta.y);
 		}
 
 		public void BackgroundTap()
@@ -71,7 +66,6 @@ namespace MaterialUI
 
 		public void Open()
 		{
-            RecalcSize();
 			currentPos = thisRectTransform.anchoredPosition;
 			currentBackgroundAlpha = backgroundCanvasGroup.alpha;
 			currentShadowAlpha = shadowCanvasGroup.alpha;
@@ -139,10 +133,10 @@ namespace MaterialUI
 
 		public void OnDrag(PointerEventData data)
 		{
-			tempVector2 = thisRectTransform.position;
+			tempVector2 = thisRectTransform.anchoredPosition;
 			tempVector2.x += data.delta.x;
 
-			thisRectTransform.position = tempVector2;
+			thisRectTransform.anchoredPosition = tempVector2;
 
 			backgroundCanvasGroup.alpha = 1 - (maxPosition - thisRectTransform.anchoredPosition.x) / (maxPosition - minPosition);
 			shadowCanvasGroup.alpha = 1 - (maxPosition - thisRectTransform.anchoredPosition.x) / ((maxPosition - minPosition) * 2);

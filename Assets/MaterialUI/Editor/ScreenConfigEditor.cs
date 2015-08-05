@@ -17,7 +17,7 @@ using System.Security.Cryptography;
 namespace MaterialUI
 {
 	[CanEditMultipleObjects()]
-	[CustomEditor(typeof(ScreenConfig))]
+	[CustomEditor(typeof(ScreenConfig), true)]
 	class ScreenConfigEditor : Editor
 	{
 		public override void OnInspectorGUI()

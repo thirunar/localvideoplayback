@@ -66,7 +66,7 @@ namespace MaterialUI
 		private Image thisImage;
 		private bool worldSpace;
 
-		private Color normalColor;
+		protected Color normalColor;
 		private Color highlightColor;
 
 		private Color tempColor;
@@ -116,11 +116,6 @@ namespace MaterialUI
 
 			Refresh();
 		}
-
-        public void SetNormalColor(Color color)
-        {
-            this.normalColor = color;
-        }
 
 		public void Refresh()
 		{

@@ -15,7 +15,7 @@ using System.Collections;
 namespace MaterialUI
 {
 	[CanEditMultipleObjects()]
-	[CustomEditor(typeof(RippleConfig))]
+	[CustomEditor(typeof(RippleConfig), true)]
 	class RippleConfigEditor : Editor
 	{
 		public override void OnInspectorGUI()
