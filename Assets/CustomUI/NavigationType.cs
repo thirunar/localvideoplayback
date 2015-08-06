@@ -18,4 +18,14 @@ namespace CustomUI
 
         }
     }
+
+    public class CancellationEventArgs
+    {
+        public bool CancelEvent;
+
+        public CancellationEventArgs() : base()
+        {
+
+        }
+    }
 }

@@ -15,9 +15,51 @@ namespace CustomUI
         [HideInInspector]
         public Stack<BasePage> lastPages;
 
+        private static Toaster toasterObject;
+
         void Start()
         {
             Init();
+            toasterObject = gameObject.GetComponent<Toaster>();
+        }
+
+        void Update()
+        {
+            if (Input.GetKeyDown(KeyCode.Escape))
+            {
+                HandleBackKeyPress();
+            }
+            else if (Input.GetKeyDown(KeyCode.Menu))
+            {
+                HandleMenuKeyPress();
+            }
+        }
+
+        public static void DisplayToast(string message)
+        {
+            if (toasterObject != null)
+            {
+                toasterObject.text = message;
+                toasterObject.PopupToast();
+            }
+        }
+
+        private void HandleBackKeyPress()
+        {
+            if (currentPage != null)
+            {
+                var e = new CancellationEventArgs()
+                {
+                    CancelEvent = false
+                };
+                currentPage.OnBackKeyPress(e);
+                if (!e.CancelEvent) Back();
+            }
+        }
+
+        private void HandleMenuKeyPress()
+        {
+            if (currentPage != null) currentPage.OnMenuKeyPress();
         }
 
         private void Init()
@@ -38,13 +80,16 @@ namespace CustomUI
         /// <param name="page"></param>
         private void SetCurrentPage(BasePage page, NavigationType navigationType)
         {
-            if (currentPage != null && currentPage.associatedMenu != null)
-                currentPage.associatedMenu.UnsetActive();
-            currentPage = page;
             var e = new NavigationEventArgs()
             {
                 navigationType = navigationType
             };
+            if (currentPage != null && currentPage.associatedMenu != null)
+            {
+                currentPage.associatedMenu.UnsetActive();
+                currentPage.OnNavigatedFrom(e);
+            }
+            currentPage = page;
             currentPage.OnNavigatedTo(e);
             if (currentPage == homePage) ClearLastPages();
             if (currentPage.associatedMenu != null)
@@ -84,22 +129,20 @@ namespace CustomUI
         /// <summary>
         /// Set page
         /// </summary>
-        /// <param name="page"></param>
-        private void SetPage(BasePage page)
+        /// <param name="newPage"></param>
+        private void SetPage(BasePage newPage)
         {
-            if (page == null) return;
-            if (currentPage && currentPage.CurrentState != BasePage.AnimationState.Stationary)
-            {
-                return;
-            }
-            page.transform.SetAsLastSibling();
+            if (newPage == null) return;
+            if (currentPage && currentPage.CurrentState != BasePage.AnimationState.Stationary) return;
             var e = new NavigationEventArgs()
             {
-                navigationType = NavigationType.New
+                navigationType = NavigationType.New,
             };
-            currentPage.OnNavigatedFrom(e);
-            page.Show(currentPage);
-            SetCurrentPage(page, NavigationType.New);
+            currentPage.OnNavigatingFrom(e);
+            newPage.OnNavigatingTo(e);
+            newPage.transform.SetAsLastSibling();
+            newPage.Show(currentPage);
+            SetCurrentPage(newPage, NavigationType.New);
         }
 
         /// <summary>
@@ -162,13 +205,14 @@ namespace CustomUI
         /// </summary>
         public new void Back()
         {
-            var lastPage = GetLastPage();
             var e = new NavigationEventArgs()
             {
                 navigationType = NavigationType.Back
             };
+            currentPage.OnNavigatingFrom(e);
+            var lastPage = GetLastPage();
+            lastPage.OnNavigatingTo(e);
             lastPage.ShowWithoutTransition();
-            currentPage.OnNavigatedFrom(e);
             currentPage.Hide();
             SetCurrentPage(lastPage, NavigationType.Back);
         }
