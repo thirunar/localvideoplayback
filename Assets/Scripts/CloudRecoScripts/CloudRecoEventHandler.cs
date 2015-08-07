@@ -18,7 +18,7 @@ public class CloudRecoEventHandler : MonoBehaviour, ICloudRecoEventHandler
     
     // ObjectTracker reference to avoid lookups
     private ObjectTracker mObjectTracker;
-    private ContentManager mContentManager;
+ 
 
     // the parent gameobject of the referenced ImageTargetTemplate - reused for all target search results
     private GameObject mParentOfImageTargetTemplate;
@@ -46,7 +46,6 @@ public class CloudRecoEventHandler : MonoBehaviour, ICloudRecoEventHandler
     {
         // get a reference to the Object Tracker, remember it
         mObjectTracker = TrackerManager.Instance.GetTracker<ObjectTracker>();
-        mContentManager = (ContentManager)FindObjectOfType(typeof(ContentManager));
     }
 
     /// <summary>
@@ -106,8 +105,8 @@ public class CloudRecoEventHandler : MonoBehaviour, ICloudRecoEventHandler
             // clear all known trackables
             mObjectTracker.TargetFinder.ClearTrackables(false);
 
-            // hide the ImageTargetTemplate
-            mContentManager.ShowObject(false);
+    
+    
         }
     }
     
