@@ -10,23 +10,45 @@ namespace CustomUI
         public GameObject arCamera;
         public GameObject background;
         public GameObject flashButton;
+        public GameObject cloudRecognition;
+        public GameObject imageTarget;
 
         private bool flashEnabled = false;
+        private bool isPageActive = false;
 
         public override void OnNavigatingTo(NavigationEventArgs e)
         {
-            arCamera.SetActive(true);
+
         }
 
         public override void OnNavigatedTo(NavigationEventArgs e)
         {
-            background.SetActive(false);
+            isPageActive = true;
+            Invoke("DelayedLoad", 0.5f);
+        }
+
+        private void DelayedLoad()
+        {
+            if (isPageActive)
+            {
+                arCamera.SetActive(true);
+                cloudRecognition.SetActive(true);
+                imageTarget.SetActive(true);
+                background.SetActive(false);
+            }
+        }
+
+        public override void OnNavigatingFrom(NavigationEventArgs e)
+        {
+            isPageActive = false;
         }
 
         public override void OnNavigatedFrom(NavigationEventArgs e)
         {
-            arCamera.SetActive(false);
             background.SetActive(true);
+            arCamera.SetActive(false);
+            cloudRecognition.SetActive(false);
+            imageTarget.SetActive(false);
         }
 
         public void ToggleFlash()

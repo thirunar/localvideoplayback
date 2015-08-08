@@ -9,10 +9,15 @@ namespace CustomUI
     {
         private DateTime firstBackKeyPress;
 
+        void Start()
+        {
+            firstBackKeyPress = DateTime.Today;
+        }
+
         public override void OnBackKeyPress(CancellationEventArgs e)
         {
             e.CancelEvent = true;
-            if (firstBackKeyPress != null && firstBackKeyPress.AddSeconds(2) > DateTime.Now)
+            if (firstBackKeyPress.AddSeconds(2) > DateTime.Now)
             {
                 Application.Quit();
             }
