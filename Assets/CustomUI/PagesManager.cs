@@ -205,6 +205,7 @@ namespace CustomUI
         /// </summary>
         public new void Back()
         {
+            if (currentPage == homePage) return;
             var e = new NavigationEventArgs()
             {
                 navigationType = NavigationType.Back
