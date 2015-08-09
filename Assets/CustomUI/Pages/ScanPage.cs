@@ -17,6 +17,17 @@ namespace CustomUI
         private bool flashEnabled = false;
         private bool isPageActive = false;
 
+        void Start()
+        {
+            try
+            {
+                CameraDevice.Instance.SetFlashTorchMode(false);
+                arCamera.SetActive(true);
+                Invoke("DisableArCamera", 0.5f);
+            }
+            catch { }
+        }
+
         public override void OnNavigatingTo(NavigationEventArgs e)
         {
 
@@ -26,6 +37,11 @@ namespace CustomUI
         {
             isPageActive = true;
             Invoke("DelayedLoad", 0.5f);
+        }
+
+        private void DisableArCamera()
+        {
+            arCamera.SetActive(false);
         }
 
         private void DelayedLoad()
