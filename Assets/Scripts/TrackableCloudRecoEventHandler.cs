@@ -69,13 +69,6 @@ if (child.name == "MyModel") mMyModel = child;
 
             if (video == null) return;
 
-            //for testing audio levels while in editor 
-            //distanceToCamera = Vector3.Distance(Camera.main.transform.position, transform.root.position);
-            //Debug.Log(distanceToCamera);
-            //Debug.Log(1.0f-(Mathf.Clamp01(distanceToCamera*0.0005f)*0.5f));
-
-            //To spatialize audio: check if component is available, then on update set volume to normalized distance from tracker.
-
             if (!mLostTracking && mHasBeenFound)
             {
 
@@ -89,9 +82,7 @@ mMyModel.Rotate(0.0f, -0.2666f, 0.0f);
                 //if video is playing, get distance to camera.
                 if (video.CurrentState == VideoPlayerHelper.MediaState.PLAYING)
                 {
-                    //					Debug.Log("Video on "+ transform.root.name +" is "+ video.m_path);
                     distanceToCamera = Vector3.Distance(Camera.main.transform.position, transform.root.position);
-                    //					Debug.Log(distanceToCamera);
                     mCurrentVolume = 1.0f - (Mathf.Clamp01(distanceToCamera * 0.0005f) * 0.5f);
                     video.VideoPlayer.SetVolume(mCurrentVolume);
 
@@ -123,25 +114,29 @@ mMyModel.Rotate(0.0f, -0.2666f, 0.0f);
                 //n.0f is number of seconds before playback stops when marker is lost
                 if (mSecondsSinceLost > 1.0f)
                 {
-                    if (video.CurrentState == VideoPlayerHelper.MediaState.PLAYING)
-                    {
-                        //get last position so it can resume after video is unloaded and reloaded.
-                        mVideoCurrentPosition = video.VideoPlayer.GetCurrentPosition();
-                        video.VideoPlayer.Pause();
-
-                        if (video.VideoPlayer.Unload())
-                        {
-                            Debug.Log("UnLoaded Video: " + video.m_path);
-                            videoFinished = true;
-                        }
-
-                    }
+                    PauseAndUnloadVideo();
                 }
 
                 mSecondsSinceLost += Time.deltaTime;
             }
         }
 
+        public void PauseAndUnloadVideo()
+        {
+            if (video.CurrentState == VideoPlayerHelper.MediaState.PLAYING)
+            {
+                //get last position so it can resume after video is unloaded and reloaded.
+                mVideoCurrentPosition = video.VideoPlayer.GetCurrentPosition();
+                video.VideoPlayer.Pause();
+
+                if (video.VideoPlayer.Unload())
+                {
+                    Debug.Log("UnLoaded Video: " + video.m_path);
+                    videoFinished = true;
+                }
+
+            }
+        }
         #endregion // UNITY_MONOBEHAVIOUR_METHODS
 
 
@@ -207,17 +202,7 @@ mMyModel.Rotate(0.0f, -0.2666f, 0.0f);
                 video.m_path = CloudRecoEventHandler.mPath;
 
                 video.VideoPlayer.SetFilename(CloudRecoEventHandler.mPath);
-                //				Debug.Log("Reinitializing the texture");
-                //				video.mVideoTexture = new Texture2D(0, 0, TextureFormat.RGB565, false);
-                //				video.mVideoTexture.filterMode = FilterMode.Bilinear;
-                //				video.mVideoTexture.wrapMode = TextureWrapMode.Clamp;
-                //			
-                //				int nativeTextureID = video.mVideoTexture.GetNativeTextureID();
-                //				video.VideoPlayer.SetVideoTextureID(nativeTextureID);
-                //				Debug.Log("Texture id: " + nativeTextureID);
 
-                //load Video on tracking, use local variable to skip to position left off at pause
-                //				UnloadAllVideos();
                 if (video.VideoPlayer.Load(video.m_path, VideoPlayerHelper.MediaType.ON_TEXTURE, true, mVideoCurrentPosition))
                 {
                     Debug.Log("Loaded Video: " + video.m_path + " Video Texture Id: " + video.mVideoTexture.GetNativeTextureID());
@@ -248,7 +233,7 @@ mMyModel.Rotate(0.0f, -0.2666f, 0.0f);
         }
 
 
-        private void OnTrackingLost()
+        public void OnTrackingLost()
         {
             Renderer[] rendererComponents = GetComponentsInChildren<Renderer>();
             Collider[] colliderComponents = GetComponentsInChildren<Collider>();
@@ -280,18 +265,6 @@ mMyModel.Rotate(0.0f, -0.2666f, 0.0f);
             videoFinished = false;
         }
 
-        private void UnloadAllVideos()
-        {
-            VideoPlayBackCloudRecoBehaviour[] videos = (VideoPlayBackCloudRecoBehaviour[])
-                FindObjectsOfType(typeof(VideoPlayBackCloudRecoBehaviour));
-
-            foreach (VideoPlayBackCloudRecoBehaviour video in videos)
-            {
-                Debug.Log("Unloading all videos: " + video.m_path);
-                video.VideoPlayer.Unload();
-
-            }
-        }
 
         #endregion // PRIVATE_METHODS
     }

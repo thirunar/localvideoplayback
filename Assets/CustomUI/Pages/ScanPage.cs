@@ -2,6 +2,7 @@
 using System.Collections;
 using MaterialUI;
 using Vuforia;
+using AssemblyCSharp;
 
 namespace CustomUI
 {
@@ -45,8 +46,10 @@ namespace CustomUI
 
         public override void OnNavigatedFrom(NavigationEventArgs e)
         {
-            background.SetActive(true);
             arCamera.SetActive(false);
+            imageTarget.GetComponent<TrackableCloudRecoEventHandler>().PauseAndUnloadVideo();
+            imageTarget.GetComponent<TrackableCloudRecoEventHandler>().OnTrackingLost();
+            background.SetActive(true);
             cloudRecognition.SetActive(false);
             imageTarget.SetActive(false);
         }

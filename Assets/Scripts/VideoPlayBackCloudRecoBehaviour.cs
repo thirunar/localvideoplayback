@@ -46,11 +46,11 @@ public class VideoPlayBackCloudRecoBehaviour : MonoBehaviour
     private bool mIsInited = false;
     private bool mIsPrepared = false;
 
+    [HideInInspector]
     public Texture2D mVideoTexture = null;
 
     [SerializeField]
-    [HideInInspector]
-    private Texture mKeyframeTexture = null;
+    public Texture mKeyframeTexture = null;
 
     private VideoPlayerHelper.MediaType mMediaType =
         VideoPlayerHelper.MediaType.ON_TEXTURE_FULLSCREEN;
@@ -112,7 +112,6 @@ public class VideoPlayBackCloudRecoBehaviour : MonoBehaviour
             this.enabled = false;
         }
 
-
         // Create the video player and set the filename
         mVideoPlayer = new VideoPlayerHelper();
         mVideoPlayer.SetFilename(m_path);
@@ -149,17 +148,6 @@ public class VideoPlayBackCloudRecoBehaviour : MonoBehaviour
             // Initialize the video texture
             InitVideoTexture();
 
-            // Load the video
-            /*
-            if (mVideoPlayer.Load(m_path, mMediaType, false, 0) == false)
-            {
-                Debug.Log("ERR1: Could not load video '" + m_path + "' for media type " + mMediaType);
-                HandleStateChange(VideoPlayerHelper.MediaState.ERROR);
-                this.enabled = false;
-                return;
-            }
-            */
-
             // Successfully initialized
             mIsInited = true;
         }
@@ -184,30 +172,8 @@ public class VideoPlayBackCloudRecoBehaviour : MonoBehaviour
 
                 if (isPlayableOnTexture)
                 {
+                    SetVideoTextureAndAspectRatio();
 
-
-                    // Pass the video texture id to the video player
-                    Debug.Log("Setting Texture width: " + mVideoTexture.width + " height: " + mVideoTexture.height);
-                    int nativeTextureID = mVideoTexture.GetNativeTextureID();
-
-                    mVideoPlayer.SetVideoTextureID(nativeTextureID);
-
-                    // Get the video width and height
-                    int videoWidth = mVideoPlayer.GetVideoWidth();
-                    int videoHeight = mVideoPlayer.GetVideoHeight();
-
-
-                    //					TextureScaler.scale(mVideoTexture, videoWidth, videoHeight, FilterMode.Bilinear);
-                    if (videoWidth > 0 && videoHeight > 0)
-                    {
-                        //						 Scale the video plane to match the video aspect ratio
-                        float aspect = videoHeight / (float)videoWidth;
-
-                        //						 Flip the plane as the video texture is mirrored on the horizontal
-                        transform.localScale = new Vector3(-0.1f, 0.1f, 0.1f * aspect);
-                    }
-
-                    // Seek ahead if necessary
                     if (mSeekPosition > 0)
                     {
                         mVideoPlayer.SeekTo(mSeekPosition);
@@ -215,16 +181,13 @@ public class VideoPlayBackCloudRecoBehaviour : MonoBehaviour
                 }
                 else
                 {
-                    // Handle the state change
                     state = mVideoPlayer.GetStatus();
                     HandleStateChange(state);
                     mCurrentState = state;
                 }
 
-                // Scale the icon
                 ScaleIcon();
 
-                // Video is prepared, ready for playback
                 mIsPrepared = true;
             }
         }
@@ -264,20 +227,15 @@ public class VideoPlayBackCloudRecoBehaviour : MonoBehaviour
     {
         if (pause)
         {
-            // Handle pause event natively
             mVideoPlayer.OnPause();
 
-            // Store the playback position for later
             mSeekPosition = mVideoPlayer.GetCurrentPosition();
 
-            // Deinit the video
             mVideoPlayer.Deinit();
 
-            // Reset initialization parameters
             mIsInited = false;
             mIsPrepared = false;
 
-            // Set the current state to Not Ready
             HandleStateChange(VideoPlayerHelper.MediaState.NOT_READY);
             mCurrentState = VideoPlayerHelper.MediaState.NOT_READY;
         }
@@ -307,25 +265,39 @@ public class VideoPlayBackCloudRecoBehaviour : MonoBehaviour
 
     #region PRIVATE_METHODS
 
-    // Initialize the video texture
     private void InitVideoTexture()
     {
-        // Create texture of size 0 that will be updated in the plugin (we allocate buffers in native code)
-        mVideoTexture = new Texture2D(0, 0, TextureFormat.RGB565, false);
+        mVideoTexture = new Texture2D(0, 0, TextureFormat.Alpha8, false);
         mVideoTexture.filterMode = FilterMode.Bilinear;
         mVideoTexture.wrapMode = TextureWrapMode.Clamp;
     }
 
+    private void SetVideoTextureAndAspectRatio()
+    {
+        int nativeTextureID = mVideoTexture.GetNativeTextureID();
 
-    // Handle video playback state changes
+        mVideoPlayer.SetVideoTextureID(nativeTextureID);
+
+        int videoWidth = mVideoPlayer.GetVideoWidth();
+        int videoHeight = mVideoPlayer.GetVideoHeight();
+
+        if (videoWidth > 0 && videoHeight > 0)
+        {
+            float aspect = videoHeight / (float)videoWidth;
+            transform.localScale = new Vector3(-0.1f, 0.1f, 0.1f * aspect);
+        }
+
+    }
+
     private void HandleStateChange(VideoPlayerHelper.MediaState newState)
     {
         Renderer renderer = GetComponent<Renderer>();
-        // If the movie is playing or paused render the video texture
-        // Otherwise render the keyframe
+
         if (newState == VideoPlayerHelper.MediaState.PLAYING ||
             newState == VideoPlayerHelper.MediaState.PAUSED)
         {
+            InitVideoTexture();
+            SetVideoTextureAndAspectRatio();
 
             renderer.material.mainTexture = mVideoTexture;
 
@@ -347,6 +319,7 @@ public class VideoPlayBackCloudRecoBehaviour : MonoBehaviour
             case VideoPlayerHelper.MediaState.REACHED_END:
             case VideoPlayerHelper.MediaState.PAUSED:
             case VideoPlayerHelper.MediaState.STOPPED:
+
                 mIconPlane.GetComponent<Renderer>().material.mainTexture = m_playTexture;
                 mIconPlaneActive = true;
                 break;
