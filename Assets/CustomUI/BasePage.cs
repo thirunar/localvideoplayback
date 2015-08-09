@@ -8,6 +8,24 @@ namespace CustomUI
     {
         public MenuItem associatedMenu;
 
+        public virtual void Start()
+        {
+            CanvasConstants.resizeHandler += ((s, e) => OnResize());
+        }
+
+        /// <summary>
+        /// Function called when the screen size changes
+        /// </summary>
+        public virtual void OnResize()
+        {
+            screenDimensions = new Vector2(Screen.width, Screen.height);
+        }
+
+        public virtual void Update()
+        {
+            base.Update();
+        }
+
         /// <summary>
         /// This function is called when a page is about to be displayed
         /// </summary>

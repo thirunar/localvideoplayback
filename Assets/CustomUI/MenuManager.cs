@@ -10,6 +10,7 @@ namespace CustomUI
         void Start()
         {
             RecalcSize();
+            CanvasConstants.resizeHandler += ((s, e) => RecalcSize());
         }
 
         void RecalcSize()
@@ -18,12 +19,6 @@ namespace CustomUI
             minPosition = -maxPosition;
 
             backgroundRectTransform.sizeDelta = new Vector2(CanvasConstants.canvasWidth, backgroundRectTransform.sizeDelta.y);
-        }
-
-        public new void Open()
-        {
-            RecalcSize();
-            base.Open();
         }
     }
 }

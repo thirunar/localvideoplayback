@@ -91,7 +91,7 @@ namespace MaterialUI
         private Vector2 slideOutDirectionPosition;
 
         [HideInInspector]
-        private Vector2 screenDimensions;
+        public Vector2 screenDimensions;
 
         [HideInInspector]
         private Vector2 tempVector2;
@@ -236,7 +236,7 @@ namespace MaterialUI
             state = AnimationState.TransitioningOut;
         }
 
-        void Update()
+        public void Update()
         {
             animDeltaTime = Time.realtimeSinceStartup - animStartTime;
 

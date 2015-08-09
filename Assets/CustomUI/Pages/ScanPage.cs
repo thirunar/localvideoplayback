@@ -21,7 +21,7 @@ namespace CustomUI
         {
             try
             {
-                CameraDevice.Instance.SetFlashTorchMode(false);
+                SetFlash(false);
                 arCamera.SetActive(true);
                 Invoke("DisableArCamera", 0.5f);
             }
@@ -68,6 +68,7 @@ namespace CustomUI
             background.SetActive(true);
             cloudRecognition.SetActive(false);
             imageTarget.SetActive(false);
+            SetFlash(false);
         }
 
         public void ToggleFlash()
@@ -75,6 +76,15 @@ namespace CustomUI
             if (CameraDevice.Instance.SetFlashTorchMode(!flashEnabled))
                 flashEnabled = !flashEnabled;
             flashButton.GetComponent<ImageToggle>().SetSprite(!flashEnabled);
+        }
+
+        private void SetFlash(bool on)
+        {
+            if (CameraDevice.Instance.SetFlashTorchMode(on))
+            {
+                flashEnabled = on;
+                flashButton.GetComponent<ImageToggle>().SetSprite(!on);
+            }
         }
     }
 }
