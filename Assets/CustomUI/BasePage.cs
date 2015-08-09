@@ -21,7 +21,7 @@ namespace CustomUI
             screenDimensions = new Vector2(Screen.width, Screen.height);
         }
 
-        public virtual void Update()
+        public new virtual void Update()
         {
             base.Update();
         }

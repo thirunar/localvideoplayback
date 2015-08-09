@@ -10,8 +10,9 @@ namespace CustomUI
         public GameObject menuBar;
         private DateTime firstBackKeyPress;
 
-        void Start()
+        public override void Start()
         {
+            base.Start();
             firstBackKeyPress = DateTime.Today;
         }
 

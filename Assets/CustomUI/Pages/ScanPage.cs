@@ -17,11 +17,11 @@ namespace CustomUI
         private bool flashEnabled = false;
         private bool isPageActive = false;
 
-        void Start()
+        public override void Start()
         {
+            base.Start();
             try
             {
-                SetFlash(false);
                 arCamera.SetActive(true);
                 Invoke("DisableArCamera", 0.5f);
             }
@@ -73,18 +73,15 @@ namespace CustomUI
 
         public void ToggleFlash()
         {
-            if (CameraDevice.Instance.SetFlashTorchMode(!flashEnabled))
-                flashEnabled = !flashEnabled;
-            flashButton.GetComponent<ImageToggle>().SetSprite(!flashEnabled);
+            SetFlash(!flashEnabled);
         }
 
         private void SetFlash(bool on)
         {
-            if (CameraDevice.Instance.SetFlashTorchMode(on))
-            {
-                flashEnabled = on;
-                flashButton.GetComponent<ImageToggle>().SetSprite(!on);
-            }
+            if (flashEnabled == on) return;
+            if (!CameraDevice.Instance.SetFlashTorchMode(on)) on = false;
+            flashEnabled = on;
+            flashButton.GetComponent<ImageToggle>().SetSprite(!on);
         }
     }
 }
