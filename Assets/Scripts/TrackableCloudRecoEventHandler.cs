@@ -27,6 +27,7 @@ namespace AssemblyCSharp
         private bool mHasBeenFound = false;
         private bool mLostTracking;
         private bool videoFinished;
+        private bool isAudioMuted = false;
         private float mSecondsSinceLost;
         private float distanceToCamera;
 
@@ -38,7 +39,34 @@ namespace AssemblyCSharp
 
         #endregion // PRIVATE_MEMBER_VARIABLES
 
+        #region PUBLIC_MEMBER_VARIABLES
 
+        public event EventHandler OnTrackingLostHandler;
+        public event EventHandler OnTrackingFoundHandler;
+        public event EventHandler OnVideoPlayHandler;
+        public event EventHandler OnVideoUnloadHandler;
+
+        private void CallOnTrackingLostHandler()
+        {
+            if (OnTrackingLostHandler != null) OnTrackingLostHandler(this, new EventArgs());
+        }
+
+        private void CallOnTrackingFoundHandler()
+        {
+            if (OnTrackingFoundHandler != null) OnTrackingFoundHandler(this, new EventArgs());
+        }
+
+        private void CallOnVideoPlayHandler()
+        {
+            if (OnVideoPlayHandler != null) OnVideoPlayHandler(this, new EventArgs());
+        }
+
+        private void CallOnVideoUnloadHandler()
+        {
+            if (OnVideoUnloadHandler != null) OnVideoUnloadHandler(this, new EventArgs());
+        }
+
+        #endregion //PUBLIC_MEMBER_VARIABLES
 
         #region UNITY_MONOBEHAVIOUR_METHODS
 
@@ -66,12 +94,10 @@ if (child.name == "MyModel") mMyModel = child;
 
         void Update()
         {
-
             if (video == null) return;
 
             if (!mLostTracking && mHasBeenFound)
             {
-
                 /*
 //whatever custom animation is performed per update frame if tracker is found
 if (mMyModel)
@@ -84,22 +110,16 @@ mMyModel.Rotate(0.0f, -0.2666f, 0.0f);
                 {
                     distanceToCamera = Vector3.Distance(Camera.main.transform.position, transform.root.position);
                     mCurrentVolume = 1.0f - (Mathf.Clamp01(distanceToCamera * 0.0005f) * 0.5f);
-                    video.VideoPlayer.SetVolume(mCurrentVolume);
-
+                    SetVolume(mCurrentVolume);
                 }
                 else if (video.CurrentState == VideoPlayerHelper.MediaState.REACHED_END)
                 {
-
                     //Loop automatically if marker is visible and video has reached the end
                     //comment this out if you want the play button to appear when the video has reached the end 
-
                     Debug.Log("Video Has ended, playing again");
-                    video.VideoPlayer.Play(false, 0);
+                    PlayVideo(false, 0);
                 }
-
-
             }
-
 
             // Pause the video if tracking is lost for more than n seconds
             if (mHasBeenFound && mLostTracking && !videoFinished)
@@ -108,46 +128,25 @@ mMyModel.Rotate(0.0f, -0.2666f, 0.0f);
                 {
                     //fade out volume from current if marker is lost
                     Debug.Log(mCurrentVolume - mSecondsSinceLost);
-                    video.VideoPlayer.SetVolume(Mathf.Clamp01(mCurrentVolume - mSecondsSinceLost));
+                    SetVolume(Mathf.Clamp01(mCurrentVolume - mSecondsSinceLost));
                 }
-
                 //n.0f is number of seconds before playback stops when marker is lost
                 if (mSecondsSinceLost > 1.0f)
                 {
                     PauseAndUnloadVideo();
                 }
-
                 mSecondsSinceLost += Time.deltaTime;
             }
         }
 
-        public void PauseAndUnloadVideo()
-        {
-            if (video.CurrentState == VideoPlayerHelper.MediaState.PLAYING)
-            {
-                //get last position so it can resume after video is unloaded and reloaded.
-                mVideoCurrentPosition = video.VideoPlayer.GetCurrentPosition();
-                video.VideoPlayer.Pause();
-
-                if (video.VideoPlayer.Unload())
-                {
-                    Debug.Log("UnLoaded Video: " + video.m_path);
-                    videoFinished = true;
-                }
-
-            }
-        }
         #endregion // UNITY_MONOBEHAVIOUR_METHODS
-
 
 
         #region PUBLIC_METHODS
 
         // Implementation of the ITrackableEventHandler function called when the
         // tracking state changes.
-        public void OnTrackableStateChanged(
-            TrackableBehaviour.Status previousStatus,
-            TrackableBehaviour.Status newStatus)
+        public void OnTrackableStateChanged(TrackableBehaviour.Status previousStatus, TrackableBehaviour.Status newStatus)
         {
             if (newStatus == TrackableBehaviour.Status.DETECTED ||
                 newStatus == TrackableBehaviour.Status.TRACKED)
@@ -160,6 +159,136 @@ mMyModel.Rotate(0.0f, -0.2666f, 0.0f);
             }
         }
 
+        //Set volume
+        private bool SetVolume(float level)
+        {
+            try
+            {
+                if (video != null && !isAudioMuted) return video.VideoPlayer.SetVolume(level);
+            }
+            catch (Exception any)
+            {
+                Debug.Log("Error with set volume : " + any.Message);
+            }
+            return false;
+        }
+
+        //Mute audio
+        public bool SetVolume(bool on)
+        {
+            try
+            {
+                if (on)
+                {
+                    if (video != null && video.VideoPlayer.SetVolume(0))
+                    {
+                        isAudioMuted = true;
+                        return true;
+                    }
+                }
+                else
+                {
+                    if (mCurrentVolume == 0) mCurrentVolume = 1.0f;
+                    isAudioMuted = false;
+                    if (video != null) return video.VideoPlayer.SetVolume(mCurrentVolume);
+                }
+            }
+            catch (Exception any)
+            {
+                Debug.Log("Error with set volume : " + any.Message);
+            }
+            return false;
+        }
+
+        // Pause the video
+        public bool PauseVideo()
+        {
+            try
+            {
+                if (video != null && video.CurrentState == VideoPlayerHelper.MediaState.PLAYING)
+                {
+                    //get last position so it can resume after video is unloaded and reloaded.
+                    mVideoCurrentPosition = video.VideoPlayer.GetCurrentPosition();
+                    return video.VideoPlayer.Pause();
+                }
+            }
+            catch (Exception any)
+            {
+                Debug.Log("Error with video pause : " + any.Message);
+            }
+            return false;
+        }
+
+        //Resume the video
+        public bool ResumeVideo()
+        {
+            try
+            {
+                if (video != null && video.VideoPlayer.IsPlayableOnTexture())
+                {
+                    VideoPlayerHelper.MediaState state = video.VideoPlayer.GetStatus();
+                    if (state == VideoPlayerHelper.MediaState.PAUSED ||
+                        state == VideoPlayerHelper.MediaState.READY ||
+                        state == VideoPlayerHelper.MediaState.STOPPED)
+                    {
+                        Debug.Log("Video File: " + video.m_path);
+                        return PlayVideo(false, video.VideoPlayer.GetCurrentPosition());
+                    }
+                    else if (state == VideoPlayerHelper.MediaState.REACHED_END)
+                    {
+                        // Play this video from the beginning
+                        return PlayVideo(false, 0);
+                    }
+                }
+            }
+            catch (Exception any)
+            {
+                Debug.Log("Error with video resume : " + any.Message);
+            }
+            return false;
+        }
+
+        //Play video
+        private bool PlayVideo(bool fullScreen, float seekPosition)
+        {
+            try
+            {
+                if (video != null && video.VideoPlayer.Play(fullScreen, seekPosition))
+                {
+                    StartCoroutine("CallOnVideoPlayHandler");
+                    return true;
+                }
+            }
+            catch (Exception any)
+            {
+                Debug.Log("Error with video play : " + any.Message);
+            }
+            return false;
+        }
+
+        //Both pause and unload video
+        public bool PauseAndUnloadVideo()
+        {
+            try
+            {
+                if (PauseVideo())
+                {
+                    if (video.VideoPlayer.Unload())
+                    {
+                        Debug.Log("UnLoaded Video: " + video.m_path);
+                        StartCoroutine("CallOnVideoUnloadHandler");
+                        videoFinished = true;
+                        return true;
+                    }
+                }
+            }
+            catch (Exception any)
+            {
+                Debug.Log("Error with pause and unload video : " + any.Message);
+            }
+            return false;
+        }
+
         #endregion // PUBLIC_METHODS
 
 
@@ -169,6 +298,7 @@ mMyModel.Rotate(0.0f, -0.2666f, 0.0f);
 
         private void OnTrackingFound()
         {
+            if (OnTrackingFoundHandler != null) OnTrackingFoundHandler(this, new EventArgs());
             Renderer[] rendererComponents = GetComponentsInChildren<Renderer>();
             Collider[] colliderComponents = GetComponentsInChildren<Collider>();
             AudioSource[] audioComponents = GetComponentsInChildren<AudioSource>();
@@ -188,7 +318,6 @@ mMyModel.Rotate(0.0f, -0.2666f, 0.0f);
             foreach (AudioSource component in audioComponents)
             {
                 component.Play();
-
             }
 
             Debug.Log("Trackable " + mTrackableBehaviour.TrackableName + " found");
@@ -208,23 +337,7 @@ mMyModel.Rotate(0.0f, -0.2666f, 0.0f);
                     Debug.Log("Loaded Video: " + video.m_path + " Video Texture Id: " + video.mVideoTexture.GetNativeTextureID());
                 }
 
-                if (video.VideoPlayer.IsPlayableOnTexture())
-                {
-                    VideoPlayerHelper.MediaState state = video.VideoPlayer.GetStatus();
-                    if (state == VideoPlayerHelper.MediaState.PAUSED ||
-                        state == VideoPlayerHelper.MediaState.READY ||
-                        state == VideoPlayerHelper.MediaState.STOPPED)
-                    {
-                        Debug.Log("Video File: " + video.m_path);
-                        video.VideoPlayer.Play(false, video.VideoPlayer.GetCurrentPosition());
-
-                    }
-                    else if (state == VideoPlayerHelper.MediaState.REACHED_END)
-                    {
-                        // Play this video from the beginning
-                        video.VideoPlayer.Play(false, 0);
-                    }
-                }
+                ResumeVideo();
             }
 
             mHasBeenFound = true;
@@ -235,6 +348,7 @@ mMyModel.Rotate(0.0f, -0.2666f, 0.0f);
 
         public void OnTrackingLost()
         {
+            if (OnTrackingLostHandler != null) OnTrackingLostHandler(this, new EventArgs());
             Renderer[] rendererComponents = GetComponentsInChildren<Renderer>();
             Collider[] colliderComponents = GetComponentsInChildren<Collider>();
             AudioSource[] audioComponents = GetComponentsInChildren<AudioSource>();
