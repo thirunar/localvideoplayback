@@ -7,11 +7,22 @@ namespace CustomUI
 {
     public class HomePage : BasePage
     {
+        public GameObject menuBar;
         private DateTime firstBackKeyPress;
 
         void Start()
         {
             firstBackKeyPress = DateTime.Today;
+        }
+
+        public override void OnNavigatedTo(NavigationEventArgs e)
+        {
+            menuBar.SetActive(true);
+        }
+
+        public override void OnNavigatingFrom(NavigationEventArgs e)
+        {
+            menuBar.SetActive(false);
         }
 
         public override void OnBackKeyPress(CancellationEventArgs e)
