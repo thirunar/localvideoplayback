@@ -22,7 +22,7 @@ namespace CustomUI
         private TrackableCloudRecoEventHandler trackableCloudRecoEventHandler;
         private bool flashEnabled = false;
         private bool isPageActive = false;
-        private bool isAudioMuted = false;
+        private bool isAudioEnabled = true;
 
         public override void Start()
         {
@@ -109,10 +109,10 @@ namespace CustomUI
 
         public void ToggleVolume()
         {
-            if (trackableCloudRecoEventHandler.SetVolume(isAudioMuted))
+            if (trackableCloudRecoEventHandler.SetVolume(!isAudioEnabled))
             {
-                isAudioMuted = !isAudioMuted;
-                volumeButton.GetComponent<ImageToggle>().SetSprite(!isAudioMuted);
+                isAudioEnabled = !isAudioEnabled;
+                volumeButton.transform.Find("Image").GetComponent<ImageToggle>().SetSprite(isAudioEnabled);
             }
         }
 
@@ -126,7 +126,17 @@ namespace CustomUI
             if (flashEnabled == on) return;
             if (!CameraDevice.Instance.SetFlashTorchMode(on)) on = false;
             flashEnabled = on;
-            flashButton.GetComponent<ImageToggle>().SetSprite(!on);
+            flashButton.transform.Find("Image").GetComponent<ImageToggle>().SetSprite(!on);
+        }
+
+        public void ShareClick()
+        {
+            Application.OpenURL("http://www.facebook.com");
+        }
+
+        public void HyperlinkClick()
+        {
+            Application.OpenURL("http://www.google.com");
         }
     }
 }

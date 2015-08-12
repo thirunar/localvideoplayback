@@ -180,17 +180,17 @@ mMyModel.Rotate(0.0f, -0.2666f, 0.0f);
             {
                 if (on)
                 {
+                    if (mCurrentVolume == 0) mCurrentVolume = 1.0f;
+                    isAudioMuted = false;
+                    if (video != null) return video.VideoPlayer.SetVolume(mCurrentVolume);
+                }
+                else
+                {
                     if (video != null && video.VideoPlayer.SetVolume(0))
                     {
                         isAudioMuted = true;
                         return true;
                     }
-                }
-                else
-                {
-                    if (mCurrentVolume == 0) mCurrentVolume = 1.0f;
-                    isAudioMuted = false;
-                    if (video != null) return video.VideoPlayer.SetVolume(mCurrentVolume);
                 }
             }
             catch (Exception any)
@@ -342,7 +342,6 @@ mMyModel.Rotate(0.0f, -0.2666f, 0.0f);
 
             mHasBeenFound = true;
             mLostTracking = false;
-
         }
 
 

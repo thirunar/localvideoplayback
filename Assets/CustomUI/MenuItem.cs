@@ -21,14 +21,20 @@ namespace CustomUI
 
         public void UnsetActive()
         {
-            thisImage.color = normalColor;
-            thisRippleCreator.SetNormalColor(normalColor);
+            if (thisImage != null)
+            {
+                thisImage.color = normalColor;
+                thisRippleCreator.SetNormalColor(normalColor);
+            }
         }
 
         public void SetActive()
         {
-            thisImage.color = activeColor;
-            thisRippleCreator.SetNormalColor(activeColor);
+            if (thisImage != null)
+            {
+                thisImage.color = activeColor;
+                thisRippleCreator.SetNormalColor(activeColor);
+            }
         }
     }
 }
