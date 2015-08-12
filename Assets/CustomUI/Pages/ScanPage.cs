@@ -10,10 +10,9 @@ namespace CustomUI
     {
         public GameObject arCamera;
         public GameObject background;
-        public GameObject cloudRecognition;
-        public GameObject imageTarget;
-
         public GameObject flashButton;
+//        public GameObject cloudRecognition;
+        public GameObject imageTarget;
         public GameObject volumeButton;
         public GameObject shareButton;
         public GameObject linkButton;
@@ -69,7 +68,11 @@ namespace CustomUI
         public override void OnNavigatedTo(NavigationEventArgs e)
         {
             isPageActive = true;
-            Invoke("DelayedLoad", 0.5f);
+			arCamera.SetActive(true);
+			//                cloudRecognition.SetActive(true);
+			imageTarget.SetActive(true);
+			background.SetActive(false);
+//            Invoke("DelayedLoad", 0.5f);
         }
 
         private void DisableArCamera()
@@ -82,7 +85,7 @@ namespace CustomUI
             if (isPageActive)
             {
                 arCamera.SetActive(true);
-                cloudRecognition.SetActive(true);
+//                cloudRecognition.SetActive(true);
                 imageTarget.SetActive(true);
                 background.SetActive(false);
             }
@@ -99,8 +102,8 @@ namespace CustomUI
             trackableCloudRecoEventHandler.PauseAndUnloadVideo();
             trackableCloudRecoEventHandler.OnTrackingLost();
             background.SetActive(true);
-            cloudRecognition.SetActive(false);
-            imageTarget.SetActive(false);
+//            cloudRecognition.SetActive(false);
+            imageTarget.SetActive(true);
             SetFlash(false);
             volumeButton.SetActive(false);
             shareButton.SetActive(false);

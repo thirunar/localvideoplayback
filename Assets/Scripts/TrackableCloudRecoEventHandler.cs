@@ -328,9 +328,9 @@ mMyModel.Rotate(0.0f, -0.2666f, 0.0f);
             {
                 video = GetComponentInChildren<VideoPlayBackCloudRecoBehaviour>();
 
-                video.m_path = CloudRecoEventHandler.mPath;
-
-                video.VideoPlayer.SetFilename(CloudRecoEventHandler.mPath);
+				video.m_path = @"http://www.activatear.com/activatearvideos/KFC.mp4";
+				
+				video.VideoPlayer.SetFilename(@"http://www.activatear.com/activatearvideos/KFC.mp4");
 
                 if (video.VideoPlayer.Load(video.m_path, VideoPlayerHelper.MediaType.ON_TEXTURE, true, mVideoCurrentPosition))
                 {
